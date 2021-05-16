@@ -49,7 +49,7 @@ python scripts/get_data.py qlib_data --target_dir ~/.qlib/qlib_data/qlib_us_1d -
 import qlib
 from qlib.data import D
 
-qlib.init(provider_uri="~/.qlib/qlib_data/qlib_us_1d", region="us")
+qlib.init(provider_uri=qlib2, region="us")
 df = D.features(D.instruments("all"), ["$close"], freq="day")
 
 ```
