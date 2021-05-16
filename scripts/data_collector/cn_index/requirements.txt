@@ -1,0 +1,7 @@
+logure
+fire
+requests
+pandas
+lxml
+openpyxl
+loguru
