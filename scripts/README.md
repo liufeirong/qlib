@@ -46,7 +46,7 @@ python get_data.py qlib_data --help
 ```python
 import qlib
 from qlib.config import REG_US
-provider_uri = qlib2  # target_dir
+provider_uri = qlib  # target_dir
 qlib.init(provider_uri=provider_uri, region=REG_US)
 ```
 
@@ -57,6 +57,6 @@ qlib.init(provider_uri=provider_uri, region=REG_US)
 ```python
 import qlib
 from qlib.config import REG_CN
-provider_uri = qlib2  # target_dir
+provider_uri = qlib  # target_dir
 qlib.init(provider_uri=provider_uri, region=REG_CN)
 ```

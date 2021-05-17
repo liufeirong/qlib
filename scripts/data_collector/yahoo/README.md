@@ -34,6 +34,7 @@ python collector.py normalize_data --source_dir ~/.qlib/stock_data/source/cn_1d 
 # dump data
 cd qlib/scripts
 python dump_bin.py dump_all --csv_path ~/.qlib/stock_data/source/cn_1d_nor --qlib_dir ~/.qlib/qlib_data/qlib_cn_1d --freq day --exclude_fields date,adjclose,dividends,splits,symbol
+python dump_bin.py dump_all --csv_path ~/.qlib/stock_data/source/cn_1d_nor --qlib_dir ~/.qlib/qlib_data/qlib_cn_1d --freq day --include_fields open,close,high,low,volume,change,factor
 ```
 
 #### 1d from qlib
@@ -49,7 +50,7 @@ python scripts/get_data.py qlib_data --target_dir ~/.qlib/qlib_data/qlib_us_1d -
 import qlib
 from qlib.data import D
 
-qlib.init(provider_uri=qlib2, region="us")
+qlib.init(provider_uri=qlib, region="us")
 df = D.features(D.instruments("all"), ["$close"], freq="day")
 
 ```
