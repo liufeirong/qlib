@@ -14,6 +14,9 @@ dist/
 *.pkl
 *.hd5
 *.csv
+*.rdb
+*.out
+*.dot
 
 .env
 .vim

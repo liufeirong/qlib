@@ -30,13 +30,13 @@ class PortfolioOptimizer(BaseOptimizer):
     OPT_INV = "inv"
 
     def __init__(
-            self,
-            method: str = "inv",
-            lamb: float = 0,
-            delta: float = 0,
-            alpha: float = 0.0,
-            scale_alpha: bool = True,
-            tol: float = 1e-8,
+        self,
+        method: str = "inv",
+        lamb: float = 0,
+        delta: float = 0,
+        alpha: float = 0.0,
+        scale_alpha: bool = True,
+        tol: float = 1e-8,
     ):
         """
         Args:
@@ -63,10 +63,10 @@ class PortfolioOptimizer(BaseOptimizer):
         self.scale_alpha = scale_alpha
 
     def __call__(
-            self,
-            S: Union[np.ndarray, pd.DataFrame],
-            u: Optional[Union[np.ndarray, pd.Series]] = None,
-            w0: Optional[Union[np.ndarray, pd.Series]] = None,
+        self,
+        S: Union[np.ndarray, pd.DataFrame],
+        u: Optional[Union[np.ndarray, pd.Series]] = None,
+        w0: Optional[Union[np.ndarray, pd.Series]] = None,
     ) -> Union[np.ndarray, pd.Series]:
         """
         Args:
@@ -183,6 +183,7 @@ class PortfolioOptimizer(BaseOptimizer):
         Optimization objective
             min_w w' S w
         """
+
         def func(x):
             return x @ S @ x
 

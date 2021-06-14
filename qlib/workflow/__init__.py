@@ -22,14 +22,14 @@ class QlibRecorder:
 
     @contextmanager
     def start(
-            self,
-            *,
-            experiment_id: Optional[Text] = None,
-            experiment_name: Optional[Text] = None,
-            recorder_id: Optional[Text] = None,
-            recorder_name: Optional[Text] = None,
-            uri: Optional[Text] = None,
-            resume: bool = False,
+        self,
+        *,
+        experiment_id: Optional[Text] = None,
+        experiment_name: Optional[Text] = None,
+        recorder_id: Optional[Text] = None,
+        recorder_name: Optional[Text] = None,
+        uri: Optional[Text] = None,
+        resume: bool = False,
     ):
         """
         Method to start an experiment. This method can only be called within a Python's `with` statement. Here is the example code:
@@ -80,8 +80,7 @@ class QlibRecorder:
         self.end_exp(Recorder.STATUS_FI)
 
     def start_exp(
-            self, *, experiment_id=None, experiment_name=None, recorder_id=None, recorder_name=None, uri=None,
-            resume=False
+        self, *, experiment_id=None, experiment_name=None, recorder_id=None, recorder_name=None, uri=None, resume=False
     ):
         """
         Lower level method for starting an experiment. When use this method, one should end the experiment manually
@@ -332,7 +331,7 @@ class QlibRecorder:
         """
         self.exp_manager.set_uri(uri)
 
-    def get_recorder(self, recorder_id=None, recorder_name=None, experiment_name=None):
+    def get_recorder(self, recorder_id=None, recorder_name=None, experiment_name=None) -> Recorder:
         """
         Method for retrieving a recorder.
 
@@ -524,6 +523,7 @@ class QlibRecorder:
             name1=value1, name2=value2, ...
         """
         self.get_exp().get_recorder().set_tags(**kwargs)
+
 
 import sys
 

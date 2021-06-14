@@ -291,7 +291,8 @@ def brinson_pa(
     port_group_weight_df, port_group_ret_df = decompose_portofolio(port_stock_weight_df, stock_group, stock_ret)
     bench_group_weight_df, bench_group_ret_df = decompose_portofolio(bench_stock_weight, stock_group, stock_ret)
 
-    # if the group return of the portofolio is NaN, replace it with the market value
+    # if the group return of the portofolio is NaN, replace it with the market
+    # value
     mod_port_group_ret_df = port_group_ret_df.copy()
     mod_port_group_ret_df[mod_port_group_ret_df.isna()] = bench_group_ret_df
 

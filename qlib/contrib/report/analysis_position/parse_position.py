@@ -41,9 +41,8 @@ def parse_position(position: dict = None) -> pd.DataFrame:
     for _trading_date, _value in position.items():
         # pd_date type: pd.Timestamp
         _cash = _value.pop("cash")
-        for _item in ["today_account_value"]:
-            if _item in _value:
-                _value.pop(_item)
+        if "today_account_value" in _value:
+            _value.pop("today_account_value")
 
         _trading_day_df = pd.DataFrame.from_dict(_value, orient="index")
         _trading_day_df["weight"] = position_weight_df.loc[_trading_date]

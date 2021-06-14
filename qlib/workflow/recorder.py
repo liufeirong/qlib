@@ -39,6 +39,9 @@ class Recorder:
     def __str__(self):
         return str(self.info)
 
+    def __hash__(self) -> int:
+        return hash(self.info["id"])
+
     @property
     def info(self):
         output = dict()
@@ -232,6 +235,14 @@ class MLflowRecorder(Recorder):
             client=self.client,
         )
 
+    def __hash__(self) -> int:
+        return hash(self.info["id"])
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, MLflowRecorder):
+            return self.info["id"] == o.info["id"]
+        return False
+
     @property
     def uri(self):
         return self._uri
@@ -251,6 +262,7 @@ class MLflowRecorder(Recorder):
                 return local_dir_path
             else:
                 raise RuntimeError("This recorder is not saved in the local file system.")
+
         else:
             raise Exception(
                 "Please make sure the recorder has been created and started properly before getting artifact uri."

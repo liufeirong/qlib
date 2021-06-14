@@ -38,11 +38,11 @@ class RiskModel(BaseModel):
         self.scale_return = scale_return
 
     def predict(
-            self,
-            X: Union[pd.Series, pd.DataFrame, np.ndarray],
-            return_corr: bool = False,
-            is_price: bool = True,
-            return_decomposed_components=False,
+        self,
+        X: Union[pd.Series, pd.DataFrame, np.ndarray],
+        return_corr: bool = False,
+        is_price: bool = True,
+        return_decomposed_components=False,
     ) -> Union[pd.DataFrame, np.ndarray, tuple]:
         """
         Args:
@@ -74,9 +74,9 @@ class RiskModel(BaseModel):
             columns = X.columns  # will be used to restore dataframe
             X = X.values
 
-            # calculate pct_change
-            if is_price:
-                X = X[1:] / X[:-1] - 1  # NOTE: resulting `n - 1` rows
+        # calculate pct_change
+        if is_price:
+            X = X[1:] / X[:-1] - 1  # NOTE: resulting `n - 1` rows
 
         # scale return
         if self.scale_return:
@@ -90,6 +90,7 @@ class RiskModel(BaseModel):
             assert (
                 "return_decomposed_components" in inspect.getfullargspec(self._predict).args
             ), "This risk model does not support return decomposed components of the covariance matrix "
+
             F, cov_b, var_u = self._predict(X, return_decomposed_components=True)
             return F, cov_b, var_u
 

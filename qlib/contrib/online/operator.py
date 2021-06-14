@@ -237,7 +237,6 @@ class Operator:
             um.remove_user(user_id=id)
         except BaseException:
             pass
-
         um.add_user(user_id=id, config_file=config, add_date=pd.Timestamp(start_date))
 
         # Do the online simulate
@@ -271,7 +270,6 @@ class Operator:
             executor.save_executed_file_from_trade_info(
                 trade_info=trade_info, user_path=user_path, trade_date=trade_date
             )
-
             # 5. update account state
             trade_info = executor.load_trade_info_from_executed_file(user_path=user_path, trade_date=trade_date)
             update_account(user.account, trade_info, trade_exchange, trade_date)

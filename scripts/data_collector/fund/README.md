@@ -11,7 +11,6 @@ pip install -r requirements.txt
 ## Collector Data
 
 
-
 ### CN Data
 
 #### 1d from East Money
@@ -36,7 +35,7 @@ python dump_bin.py dump_all --csv_path ~/.qlib/fund_data/source/cn_1d_nor --qlib
 import qlib
 from qlib.data import D
 
-qlib.init(provider_uri=qlib2)
+qlib.init(provider_uri="~/.qlib/qlib_data/cn_fund_data")
 df = D.features(D.instruments(market="all"), ["$DWJZ", "$LJJZ"], freq="day")
 ```
 

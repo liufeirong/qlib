@@ -10,6 +10,7 @@ import datetime
 from tqdm import tqdm
 from pathlib import Path
 from loguru import logger
+from qlib.utils import exists_qlib_data
 
 
 class GetData:
@@ -36,7 +37,7 @@ class GetData:
         return f"{self.REMOTE_URL}/{self.normalize_dataset_version(dataset_version)}/{file_name}"
 
     def _download_data(
-            self, file_name: str, target_dir: [Path, str], delete_old: bool = True, dataset_version: str = None
+        self, file_name: str, target_dir: [Path, str], delete_old: bool = True, dataset_version: str = None
     ):
         target_dir = Path(target_dir).expanduser()
         target_dir.mkdir(exist_ok=True, parents=True)
@@ -105,13 +106,14 @@ class GetData:
                 shutil.rmtree(_p)
 
     def qlib_data(
-            self,
-            name="qlib_data",
-            target_dir="~/.qlib/qlib_data/cn_data",
-            version=None,
-            interval="1d",
-            region="cn",
-            delete_old=True,
+        self,
+        name="qlib_data",
+        target_dir="~/.qlib/qlib_data/cn_data",
+        version=None,
+        interval="1d",
+        region="cn",
+        delete_old=True,
+        exists_skip=False,
     ):
         """download cn qlib data from remote
 
@@ -129,6 +131,8 @@ class GetData:
             data region, value from [cn, us], by default cn
         delete_old: bool
             delete an existing directory, by default True
+        exists_skip: bool
+            exists skip, by default False
 
         Examples
         ---------
@@ -140,6 +144,13 @@ class GetData:
         -------
 
         """
+        if exists_skip and exists_qlib_data(target_dir):
+            logger.warning(
+                f"Data already exists: {target_dir}, the data download will be skipped\n"
+                f"\tIf downloading is required: `exists_skip=False` or `change target_dir`"
+            )
+            return
+
         qlib_version = ".".join(re.findall(r"(\d+)\.+", qlib.__version__))
 
         def _get_file_name(v):

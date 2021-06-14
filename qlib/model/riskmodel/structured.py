@@ -17,7 +17,7 @@ class StructuredCovEstimator(RiskModel):
     where `F` can be specified by explicit risk factors or latent factors.
 
     Therefore the structured covariance can be estimated by
-        cov(X) = F cov(B) F.T + con(U)
+        cov(X) = F cov(B) F.T + cov(U)
 
     We use latent factor models to estimate the structured covariance.
     Specifically, the following latent factor models are supported:

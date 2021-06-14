@@ -265,8 +265,8 @@ class NameDFilter(SeriesDFilter):
 
     A name rule regular expression is required.
     """
-    def __init__(self, name_rule_re, fstart_time=None, fend_time=None):
 
+    def __init__(self, name_rule_re, fstart_time=None, fend_time=None):
         """Init function for name filter class
 
         params:

@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 import abc
+from typing import Union, Text
 import numpy as np
 import pandas as pd
 import copy
@@ -14,7 +15,7 @@ from ...utils.paral import datetime_groupby_apply
 EPS = 1e-12
 
 
-def get_group_columns(df: pd.DataFrame, group: str):
+def get_group_columns(df: pd.DataFrame, group: Union[Text, None]):
     """
     get a group of columns from multi-index columns DataFrame
 
@@ -91,6 +92,7 @@ class DropnaProcessor(Processor):
     def __call__(self, df):
         return df.dropna(subset=get_group_columns(df, self.fields_group))
 
+
 class DropnaLabel(DropnaProcessor):
     def __init__(self, fields_group="label"):
         super().__init__(fields_group=fields_group)
@@ -118,6 +120,7 @@ class FilterCol(Processor):
         self.col_list = col_list
 
     def __call__(self, df):
+
         cols = get_group_columns(df, self.fields_group)
         all_cols = df.columns
         diff_cols = np.setdiff1d(all_cols.get_level_values(-1), cols.get_level_values(-1))
@@ -234,7 +237,7 @@ class ZScoreNorm(Processor):
 class RobustZScoreNorm(Processor):
     """Robust ZScore Normalization
 
-        Use robust statistics for Z-Score normalization:
+    Use robust statistics for Z-Score normalization:
         mean(x) = median(x)
         std(x) = MAD(x) * 1.4826
 

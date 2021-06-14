@@ -26,6 +26,7 @@ def check_transform_proc(proc_l, fit_start_time, fit_end_time):
                         "fit_end_time": fit_end_time,
                     }
                 )
+            # FIXME: the `module_path` parameter is missed.
             new_l.append({"class": klass.__name__, "kwargs": pkwargs})
         else:
             new_l.append(p)
@@ -45,17 +46,17 @@ _DEFAULT_INFER_PROCESSORS = [
 
 class Alpha360(DataHandlerLP):
     def __init__(
-            self,
-            instruments="csi500",
-            start_time=None,
-            end_time=None,
-            freq="day",
-            infer_processors=_DEFAULT_INFER_PROCESSORS,
-            learn_processors=_DEFAULT_LEARN_PROCESSORS,
-            fit_start_time=None,
-            fit_end_time=None,
-            filter_pipe=None,
-            **kwargs,
+        self,
+        instruments="csi500",
+        start_time=None,
+        end_time=None,
+        freq="day",
+        infer_processors=_DEFAULT_INFER_PROCESSORS,
+        learn_processors=_DEFAULT_LEARN_PROCESSORS,
+        fit_start_time=None,
+        fit_end_time=None,
+        filter_pipe=None,
+        **kwargs,
     ):
         infer_processors = check_transform_proc(infer_processors, fit_start_time, fit_end_time)
         learn_processors = check_transform_proc(learn_processors, fit_start_time, fit_end_time)
@@ -130,18 +131,18 @@ class Alpha360vwap(Alpha360):
 
 class Alpha158(DataHandlerLP):
     def __init__(
-            self,
-            instruments="csi500",
-            start_time=None,
-            end_time=None,
-            freq="day",
-            infer_processors=[],
-            learn_processors=_DEFAULT_LEARN_PROCESSORS,
-            fit_start_time=None,
-            fit_end_time=None,
-            process_type=DataHandlerLP.PTYPE_A,
-            filter_pipe=None,
-            **kwargs,
+        self,
+        instruments="csi500",
+        start_time=None,
+        end_time=None,
+        freq="day",
+        infer_processors=[],
+        learn_processors=_DEFAULT_LEARN_PROCESSORS,
+        fit_start_time=None,
+        fit_end_time=None,
+        process_type=DataHandlerLP.PTYPE_A,
+        filter_pipe=None,
+        **kwargs,
     ):
         infer_processors = check_transform_proc(infer_processors, fit_start_time, fit_end_time)
         learn_processors = check_transform_proc(learn_processors, fit_start_time, fit_end_time)

@@ -12,7 +12,7 @@ from pathlib import Path
 import fire
 import requests
 import pandas as pd
-from lxml.html import etree
+from lxml import etree
 from loguru import logger
 
 CUR_DIR = Path(__file__).resolve().parent

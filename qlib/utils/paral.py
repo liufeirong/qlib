@@ -34,7 +34,6 @@ def datetime_groupby_apply(df, apply_func, axis=0, level="datetime", resample_ru
         dfs = Parallel(n_jobs=n_jobs)(
             delayed(_naive_group_apply)(sub_df) for idx, sub_df in df.resample(resample_rule, axis=axis, level=level)
         )
-
         return pd.concat(dfs, axis=axis).sort_index()
     else:
         return _naive_group_apply(df)

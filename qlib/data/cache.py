@@ -138,12 +138,13 @@ class MemCache:
 
     def __init__(self, mem_cache_size_limit=None, limit_type="length"):
         """
+
         Parameters
         ----------
-
         mem_cache_size_limit: cache max size.
         limit_type: length or sizeof; length(call fun: len), size(call fun: sys.getsizeof).
         """
+
         size_limit = C.mem_cache_size_limit if mem_cache_size_limit is None else mem_cache_size_limit
 
         if limit_type == "length":
@@ -665,6 +666,7 @@ class DiskDatasetCache(DatasetCache):
                 df = df.swaplevel("datetime", "instrument").sort_index()
                 # read cache and need to replace not-space fields to field
                 df = cls.cache_to_origin_data(df, fields)
+
             else:
                 df = pd.DataFrame(columns=fields)
         return df
@@ -735,6 +737,7 @@ class DiskDatasetCache(DatasetCache):
         The lock is not considered in the class. Please consider the lock outside the code.
         This class is the proxy of the disk data.
         """
+
         KEY = "df"
 
         def __init__(self, cache_path):
@@ -825,7 +828,7 @@ class DiskDatasetCache(DatasetCache):
             - Each line contains two element <start_index, end_index> with a timestamp as its index.
             - It indicates the `start_index`(included) and `end_index`(excluded) of the data for `timestamp`
 
-         - meta data: cache/d41366901e25de3ec47297f12e2ba11d.meta
+        - meta data: cache/d41366901e25de3ec47297f12e2ba11d.meta
 
         - data     : cache/d41366901e25de3ec47297f12e2ba11d
 
@@ -951,9 +954,9 @@ class DiskDatasetCache(DatasetCache):
                     rm_n_period = min(rght_etd, index_data.shape[0])
                     rm_lines = (
                         (index_data["end"] - index_data["start"])
-                            .loc[whole_calendar[current_index - rm_n_period]:]
-                            .sum()
-                            .item()
+                        .loc[whole_calendar[current_index - rm_n_period] :]
+                        .sum()
+                        .item()
                     )
 
                 data = self.provider.dataset(
@@ -985,7 +988,7 @@ class DiskDatasetCache(DatasetCache):
 
                 # update index file
                 new_index_data = im.build_index_from_data(
-                    data.loc(axis=0)[whole_calendar[current_index]:, :],
+                    data.loc(axis=0)[whole_calendar[current_index] :, :],
                     start_index=0 if index_data.empty else index_data["end"].iloc[-1],
                 )
                 im.append_index(new_index_data)
@@ -1046,6 +1049,7 @@ class DatasetURICache(DatasetCache):
         return hash_args(*self.normalize_uri_args(instruments, fields, freq), disk_cache)
 
     def dataset(self, instruments, fields, start_time=None, end_time=None, freq="day", disk_cache=0):
+
         if "local" in C.dataset_provider.lower():
             # use LocalDatasetProvider
             return self.provider.dataset(instruments, fields, start_time, end_time, freq)

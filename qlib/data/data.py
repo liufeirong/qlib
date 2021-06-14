@@ -6,7 +6,9 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import re
 import abc
+import copy
 import time
 import queue
 import bisect
@@ -27,11 +29,41 @@ from .cache import DiskDatasetCache, DiskExpressionCache
 from ..utils import Wrapper, init_instance_by_config, register_wrapper, get_module_by_module_path
 
 
-class CalendarProvider(abc.ABC):
+class ProviderBackendMixin:
+    def get_default_backend(self):
+        backend = {}
+        provider_name: str = re.findall("[A-Z][^A-Z]*", self.__class__.__name__)[-2]
+        # set default storage class
+        backend.setdefault("class", f"File{provider_name}Storage")
+        # set default storage module
+        backend.setdefault("module_path", "qlib.data.storage.file_storage")
+        return backend
+
+    def backend_obj(self, **kwargs):
+        backend = self.backend if self.backend else self.get_default_backend()
+        backend = copy.deepcopy(backend)
+
+        # set default storage kwargs
+        backend_kwargs = backend.setdefault("kwargs", {})
+        # default provider_uri map
+        if "provider_uri" not in backend_kwargs:
+            # if the user has no uri configured, use: uri = uri_map[freq]
+            freq = kwargs.get("freq", "day")
+            provider_uri_map = backend_kwargs.setdefault("provider_uri_map", {freq: C.get_data_path()})
+            backend_kwargs["provider_uri"] = provider_uri_map[freq]
+        backend.setdefault("kwargs", {}).update(**kwargs)
+        return init_instance_by_config(backend)
+
+
+class CalendarProvider(abc.ABC, ProviderBackendMixin):
     """Calendar provider base class
 
     Provide calendar data.
     """
+
+    def __init__(self, *args, **kwargs):
+        self.backend = kwargs.get("backend", {})
+
     @abc.abstractmethod
     def calendar(self, start_time=None, end_time=None, freq="day", future=False):
         """Get calendar of certain market in given time range.
@@ -66,7 +98,7 @@ class CalendarProvider(abc.ABC):
         freq : str
             time frequency, available: year/quarter/month/week/day.
         future : bool
-             whether including future trading day.
+            whether including future trading day.
 
         Returns
         -------
@@ -126,11 +158,14 @@ class CalendarProvider(abc.ABC):
         return hash_args(start_time, end_time, freq, future)
 
 
-class InstrumentProvider(abc.ABC):
+class InstrumentProvider(abc.ABC, ProviderBackendMixin):
     """Instrument provider base class
 
     Provide instrument data.
     """
+
+    def __init__(self, *args, **kwargs):
+        self.backend = kwargs.get("backend", {})
 
     @staticmethod
     def instruments(market="all", filter_pipe=None):
@@ -214,11 +249,14 @@ class InstrumentProvider(abc.ABC):
         raise ValueError(f"Unknown instrument type {inst}")
 
 
-class FeatureProvider(abc.ABC):
+class FeatureProvider(abc.ABC, ProviderBackendMixin):
     """Feature provider class
 
     Provide feature data.
     """
+
+    def __init__(self, *args, **kwargs):
+        self.backend = kwargs.get("backend", {})
 
     @abc.abstractmethod
     def feature(self, instrument, field, start_time, end_time, freq):
@@ -496,6 +534,7 @@ class LocalCalendarProvider(CalendarProvider):
     """
 
     def __init__(self, **kwargs):
+        super(LocalCalendarProvider, self).__init__(**kwargs)
         self.remote = kwargs.get("remote", False)
 
     @property
@@ -516,21 +555,22 @@ class LocalCalendarProvider(CalendarProvider):
         list
             list of timestamps
         """
-        if future:
-            fname = self._uri_cal.format(freq + "_future")
-            # if future calendar not exists, return current calendar
-            if not os.path.exists(fname):
-                get_module_logger("data").warning(f"{freq}_future.txt not exists, return current calendar!")
+
+        try:
+            backend_obj = self.backend_obj(freq=freq, future=future).data
+        except ValueError:
+            if future:
+                get_module_logger("data").warning(
+                    f"load calendar error: freq={freq}, future={future}; return current calendar!"
+                )
                 get_module_logger("data").warning(
                     "You can get future calendar by referring to the following document: https://github.com/microsoft/qlib/blob/main/scripts/data_collector/contrib/README.md"
                 )
-                fname = self._uri_cal.format(freq)
-        else:
-            fname = self._uri_cal.format(freq)
-        if not os.path.exists(fname):
-            raise ValueError("calendar not exists for freq " + freq)
-        with open(fname) as f:
-            return [pd.Timestamp(x.strip()) for x in f]
+                backend_obj = self.backend_obj(freq=freq, future=False).data
+            else:
+                raise
+
+        return [pd.Timestamp(x) for x in backend_obj]
 
     def calendar(self, start_time=None, end_time=None, freq="day", future=False):
         _calendar, _calendar_index = self._get_calendar(freq, future)
@@ -561,38 +601,20 @@ class LocalInstrumentProvider(InstrumentProvider):
     Provide instrument data from local data source.
     """
 
-    def __init__(self):
-        pass
-
     @property
     def _uri_inst(self):
         """Instrument file uri."""
         return os.path.join(C.get_data_path(), "instruments", "{}.txt")
 
-    def _load_instruments(self, market):
-        fname = self._uri_inst.format(market)
-        if not os.path.exists(fname):
-            raise ValueError("instruments not exists for market " + market)
-
-        _instruments = dict()
-        df = pd.read_csv(
-            fname,
-            sep="\t",
-            usecols=[0, 1, 2],
-            names=["inst", "start_datetime", "end_datetime"],
-            dtype={"inst": str},
-            parse_dates=["start_datetime", "end_datetime"],
-        )
-        for row in df.itertuples(index=False):
-            _instruments.setdefault(row[0], []).append((row[1], row[2]))
-        return _instruments
+    def _load_instruments(self, market, freq):
+        return self.backend_obj(market=market, freq=freq).data
 
     def list_instruments(self, instruments, start_time=None, end_time=None, freq="day", as_list=False):
         market = instruments["market"]
         if market in H["i"]:
             _instruments = H["i"][market]
         else:
-            _instruments = self._load_instruments(market)
+            _instruments = self._load_instruments(market, freq=freq)
             H["i"][market] = _instruments
         # strip
         # use calendar boundary
@@ -603,7 +625,7 @@ class LocalInstrumentProvider(InstrumentProvider):
             inst: list(
                 filter(
                     lambda x: x[0] <= x[1],
-                    [(max(start_time, x[0]), min(end_time, x[1])) for x in spans],
+                    [(max(start_time, pd.Timestamp(x[0])), min(end_time, pd.Timestamp(x[1]))) for x in spans],
                 )
             )
             for inst, spans in _instruments.items()
@@ -629,6 +651,7 @@ class LocalFeatureProvider(FeatureProvider):
     """
 
     def __init__(self, **kwargs):
+        super(LocalFeatureProvider, self).__init__(**kwargs)
         self.remote = kwargs.get("remote", False)
 
     @property
@@ -640,14 +663,7 @@ class LocalFeatureProvider(FeatureProvider):
         # validate
         field = str(field).lower()[1:]
         instrument = code_to_fname(instrument)
-        uri_data = self._uri_data.format(instrument.lower(), field, freq)
-        if not os.path.exists(uri_data):
-            get_module_logger("data").warning("WARN: data not found for %s.%s" % (instrument, field))
-            return pd.Series(dtype=np.float32)
-            # raise ValueError('uri_data not found: ' + uri_data)
-        # load
-        series = read_bin(uri_data, start_index, end_index)
-        return series
+        return self.backend_obj(instrument=instrument, field=field, freq=freq)[start_index : end_index + 1]
 
 
 class LocalExpressionProvider(ExpressionProvider):
@@ -719,6 +735,7 @@ class LocalDatasetProvider(DatasetProvider):
             p = Pool(processes=workers)
         else:
             p = Pool(processes=workers, maxtasksperchild=C.maxtasksperchild)
+
         for inst in instruments_d:
             p.apply_async(
                 LocalDatasetProvider.cache_walker,
@@ -883,6 +900,7 @@ class ClientDatasetProvider(DatasetProvider):
                 else:
                     return data
         else:
+
             """
             Call the server to generate the data-set cache, get the uri of the cache file.
             Then load the data from the file on NFS directly.
@@ -1008,6 +1026,7 @@ class ClientProvider(BaseProvider):
     When the user use client provider to propose a request, the client provider will connect the server and send the request. The client will start to wait for the response. The response will be made instantly indicating whether the cache is available. The waiting procedure will terminate only when the client get the reponse saying `feature_available` is true.
     `BUG` : Everytime we make request for certain data we need to connect to the server, wait for the response and disconnect from it. We can't make a sequence of requests within one connection. You can refer to https://python-socketio.readthedocs.io/en/latest/client.html for documentation of python-socketIO client.
     """
+
     def __init__(self):
         from .client import Client
 
@@ -1024,6 +1043,7 @@ class ClientProvider(BaseProvider):
 
 
 import sys
+
 if sys.version_info >= (3, 9):
     from typing import Annotated
 
@@ -1060,7 +1080,8 @@ def register_all_wrappers(C):
     register_wrapper(Cal, _calendar_provider, "qlib.data")
     logger.debug(f"registering Cal {C.calendar_provider}-{C.calendar_cache}")
 
-    register_wrapper(Inst, C.instrument_provider, "qlib.data")
+    _instrument_provider = init_instance_by_config(C.instrument_provider, module)
+    register_wrapper(Inst, _instrument_provider, "qlib.data")
     logger.debug(f"registering Inst {C.instrument_provider}")
 
     if getattr(C, "feature_provider", None) is not None:

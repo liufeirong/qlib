@@ -19,3 +19,6 @@ python future_trading_date_collector.py --qlib_dir ~/.qlib/qlib_data/cn_data --f
 
 - qlib_dir: qlib data directory
 - freq: value from [`day`, `1min`], default `day`
+
+
+

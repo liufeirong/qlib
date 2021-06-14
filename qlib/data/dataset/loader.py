@@ -13,6 +13,7 @@ from qlib.data import D
 from qlib.data import filter as filter_module
 from qlib.data.filter import BaseDFilter
 from qlib.utils import load_dataset, init_instance_by_config
+from qlib.log import get_module_logger
 
 
 class DataLoader(abc.ABC):
@@ -60,6 +61,7 @@ class DLWParser(DataLoader):
 
     Extracting this class so that QlibDataLoader and other dataloaders(such as QdbDataLoader) can share the fields.
     """
+
     def __init__(self, config: Tuple[list, tuple, dict]):
         """
         Parameters
@@ -178,6 +180,7 @@ class QlibDataLoader(DLWParser):
             df = df.swaplevel().sort_index()  # NOTE: if swaplevel, return <datetime, instrument>
         return df
 
+
 class StaticDataLoader(DataLoader):
     """
     DataLoader that supports loading data from file or as provided.
@@ -222,6 +225,10 @@ class DataLoaderDH(DataLoader):
     DataLoader based on (D)ata (H)andler
     It is designed to load multiple data from data handler
     - If you just want to load data from single datahandler, you can write them in single data handler
+
+    TODO: What make this module not that easy to use.
+    - For online scenario
+        - The underlayer data handler should be configured. But data loader doesn't provide such interface & hook.
     """
 
     def __init__(self, handler_config: dict, fetch_kwargs: dict = {}, is_group=False):
@@ -263,7 +270,7 @@ class DataLoaderDH(DataLoader):
 
     def load(self, instruments=None, start_time=None, end_time=None) -> pd.DataFrame:
         if instruments is not None:
-            LOG.warning(f"instruments[{instruments}] is ignored")
+            get_module_logger(self.__class__.__name__).warning(f"instruments[{instruments}] is ignored")
 
         if self.is_group:
             df = pd.concat(

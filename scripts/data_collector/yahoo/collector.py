@@ -191,7 +191,7 @@ class YahooCollector(BaseCollector):
 
 class YahooCollectorCN(YahooCollector, ABC):
     def get_instrument_list(self):
-        logger.info("get HS stock symbos......")
+        logger.info("get HS stock symbols......")
         symbols = get_hs_stock_symbols()
         logger.info(f"get {len(symbols)} symbols.")
         return symbols
@@ -312,7 +312,8 @@ class YahooNormalize(BaseNormalize):
                 .loc[
                     pd.Timestamp(df.index.min()).date() : pd.Timestamp(df.index.max()).date()
                     + pd.Timedelta(hours=23, minutes=59)
-                ].index
+                ]
+                .index
             )
         df.sort_index(inplace=True)
         df.loc[(df["volume"] <= 0) | np.isnan(df["volume"]), set(df.columns) - {symbol_field_name}] = np.nan
@@ -580,7 +581,6 @@ class Run(BaseRun):
         delay=0,
         start=None,
         end=None,
-        interval="1d",
         check_data_length=False,
         limit_nums=None,
     ):
@@ -592,8 +592,6 @@ class Run(BaseRun):
             default 2
         delay: float
             time.sleep(delay), default 0
-        interval: str
-            freq, value from [1min, 1d], default 1d
         start: str
             start datetime, default "2000-01-01"
         end: str
@@ -610,8 +608,9 @@ class Run(BaseRun):
             # get 1m data
             $ python collector.py download_data --source_dir ~/.qlib/stock_data/source --region CN --start 2020-11-01 --end 2020-11-10 --delay 0.1 --interval 1m
         """
-
-        super(Run, self).download_data(max_collector_count, delay, start, end, interval, check_data_length, limit_nums)
+        super(Run, self).download_data(
+            max_collector_count, delay, start, end, self.interval, check_data_length, limit_nums
+        )
 
     def normalize_data(self, date_field_name: str = "date", symbol_field_name: str = "symbol"):
         """normalize data

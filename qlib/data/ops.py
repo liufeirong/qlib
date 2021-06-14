@@ -113,6 +113,7 @@ class Sign(NpElemOperator):
     Expression
         a feature instance with sign
     """
+
     def __init__(self, feature):
         super(Sign, self).__init__(feature, "sign")
 
@@ -139,6 +140,7 @@ class Log(NpElemOperator):
     Expression
         a feature instance with log
     """
+
     def __init__(self, feature):
         super(Log, self).__init__(feature, "log")
 
@@ -184,6 +186,7 @@ class Mask(NpElemOperator):
     Expression
         a feature instance with masked instrument
     """
+
     def __init__(self, feature, instrument):
         super(Mask, self).__init__(feature, "mask")
         self.instrument = instrument
@@ -233,6 +236,7 @@ class PairOperator(ExpressionOps):
     Feature:
         two features' operation output
     """
+
     def __init__(self, feature_left, feature_right):
         self.feature_left = feature_left
         self.feature_right = feature_right
@@ -282,6 +286,7 @@ class NpPairOperator(PairOperator):
     Feature:
         two features' operation output
     """
+
     def __init__(self, feature_left, feature_right, func):
         self.func = func
         super(NpPairOperator, self).__init__(feature_left, feature_right)
@@ -1088,6 +1093,7 @@ class Rank(Rolling):
     Expression
         a feature instance with rolling rank
     """
+
     def __init__(self, feature, N):
         super(Rank, self).__init__(feature, N, "rank")
 
@@ -1402,8 +1408,10 @@ class Corr(PairRolling):
         # NOTE: Load uses MemCache, so calling load again will not cause performance degradation
         series_left = self.feature_left.load(instrument, start_index, end_index, freq)
         series_right = self.feature_right.load(instrument, start_index, end_index, freq)
-        res.loc[np.isclose(series_left.rolling(self.N, min_periods=1).std(), 0, atol=2e-05)
-            | np.isclose(series_right.rolling(self.N, min_periods=1).std(), 0, atol=2e-05)] = np.nan
+        res.loc[
+            np.isclose(series_left.rolling(self.N, min_periods=1).std(), 0, atol=2e-05)
+            | np.isclose(series_right.rolling(self.N, min_periods=1).std(), 0, atol=2e-05)
+        ] = np.nan
         return res
 
 
@@ -1480,6 +1488,7 @@ OpsList = [
 
 class OpsWrapper:
     """Ops Wrapper"""
+
     def __init__(self):
         self._ops = {}
 
